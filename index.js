@@ -160,16 +160,16 @@ async function handleMessagesUpsert({ messages }) {
 
 async function startWhatsApp() {
   const { state, saveCreds } = await useMongoDBAuthState()
-  const socket = makeWASocket({
+  const sock = makeWASocket({
     auth: state,
     browser: Browsers.ubuntu('WhatsApp Expense Income Tracker'),
     logger,
     printQRInTerminal: false
   })
 
-  socket.ev.on('creds.update', saveCreds)
-  socket.ev.on('messages.upsert', handleMessagesUpsert)
-  socket.ev.on('connection.update', ({ connection, lastDisconnect, qr }) => {
+  sock.ev.on('creds.update', saveCreds)
+  sock.ev.on('messages.upsert', handleMessagesUpsert)
+  sock.ev.on('connection.update', ({ connection, lastDisconnect, qr }) => {
     if (qr) {
       qrcode.generate(qr, { small: true }, (qrCode) => {
         console.log(qrCode)
@@ -189,6 +189,18 @@ async function startWhatsApp() {
       }
     }
   })
+
+  const phoneNumber = process.env.PHONE_NUMBER?.replace(/\D/g, '')
+  if (!state.creds.registered && phoneNumber) {
+    setTimeout(async () => {
+      try {
+        const code = await sock.requestPairingCode(phoneNumber)
+        console.log('CÓDIGO DE VINCULACIÓN (Si no usas QR):', code)
+      } catch (error) {
+        logger.error({ err: error }, 'No se pudo solicitar el código de vinculación')
+      }
+    }, 3000)
+  }
 }
 
 async function start() {
