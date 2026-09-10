@@ -4,6 +4,7 @@ import express from 'express'
 import mongoose from 'mongoose'
 import axios from 'axios'
 import pino from 'pino'
+import pretty from 'pino-pretty'
 import qrcode from 'qrcode-terminal'
 import {
   Browsers,
@@ -15,7 +16,10 @@ import {
   proto
 } from '@whiskeysockets/baileys'
 
-const logger = pino({ level: process.env.LOG_LEVEL || 'info' })
+const logger = pino(
+  { level: process.env.LOG_LEVEL || 'info' },
+  pretty({ colorize: false, translateTime: false })
+)
 const app = express()
 const port = Number(process.env.PORT) || 3000
 
@@ -167,7 +171,9 @@ async function startWhatsApp() {
   socket.ev.on('messages.upsert', handleMessagesUpsert)
   socket.ev.on('connection.update', ({ connection, lastDisconnect, qr }) => {
     if (qr) {
-      qrcode.generate(qr, { small: true })
+      qrcode.generate(qr, { small: true }, (qrCode) => {
+        console.log(qrCode)
+      })
     }
 
     if (connection === 'open') {
