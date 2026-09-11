@@ -148,7 +148,7 @@ async function sendToN8n(message, text, tipoOperacion) {
 async function handleMessagesUpsert({ messages }) {
   for (const message of messages) {
     const groupId = message.key.remoteJid || ''
-    if (message.key.fromMe || !groupId.endsWith('@g.us')) {
+    if (!groupId.endsWith('@g.us')) {
       continue
     }
 
