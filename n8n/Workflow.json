@@ -1,0 +1,187 @@
+{
+  "name": "WS tracker",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "51667a3c-58db-4b6b-a7b6-d0b6555e87f3",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "76c1cf25-e29c-44ca-abbe-d0524e06c824",
+      "name": "Webhook",
+      "webhookId": "51667a3c-58db-4b6b-a7b6-d0b6555e87f3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"qwen/qwen3.8-27b\",\n  \"temperature\": 0.0,\n  \"max_tokens\": 500,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Extrae del mensaje el monto (número), la descripción y el tipo (gasto o ingreso). Devuelve ÚNICAMENTE un objeto JSON válido con las claves: \\\"monto\\\", \\\"descripcion\\\", \\\"tipo\\\". No incluyas explicaciones, ni etiquetas markdown como ```json.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"{{ $json.body.textoDelMensaje }}\" \n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "997aa648-3c1a-4565-a51d-c26d42a33d8f",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "7HD08iQFiLrUM35W",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "15YNrNkjjBRRr04rpZ5Ggrqf5KNLQR64SXyhh1U7Kedk",
+          "mode": "list",
+          "cachedResultName": "GASTOS AI/WS",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15YNrNkjjBRRr04rpZ5Ggrqf5KNLQR64SXyhh1U7Kedk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15YNrNkjjBRRr04rpZ5Ggrqf5KNLQR64SXyhh1U7Kedk/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Fecha": "={{ $now.setZone('America/Bogota').toFormat('yyyy-MM-dd') }}",
+            "Hora": "={{ $now.setZone('America/Bogota').toFormat('HH:mm:ss') }}",
+            "Tipo": "={{ JSON.parse($json.choices[0].message.content).tipo.toUpperCase() }}",
+            "Concepto": "={{ JSON.parse($json.choices[0].message.content).descripcion }}",
+            " Monto": "={{ JSON.parse($json.choices[0].message.content).monto }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Hora",
+              "displayName": "Hora",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Tipo",
+              "displayName": "Tipo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Concepto",
+              "displayName": "Concepto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": " Monto",
+              "displayName": " Monto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        448,
+        0
+      ],
+      "id": "c4f09e00-bc2e-47e5-806c-8aadbb807478",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "2LswmUiVzFLVgT6K",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "a9ab888e-09f4-4bf2-a6ff-8d727c096fde",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "47a17af7f0d59c648449f75d91448e71bec4469c4a177b33e461ca4efa732582"
+  },
+  "nodeGroups": [],
+  "id": "yy6UnqyzyDu0qIOi",
+  "tags": []
+}
